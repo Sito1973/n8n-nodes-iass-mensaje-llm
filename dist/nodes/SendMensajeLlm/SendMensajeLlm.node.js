@@ -1,0 +1,459 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SendMensajeLlm = void 0;
+class SendMensajeLlm {
+    constructor() {
+        this.description = {
+            displayName: 'Send Mensaje LLM',
+            name: 'sendMensajeLlm',
+            icon: 'file:sendMensajeLlm.png',
+            group: ['output'],
+            version: 1,
+            subtitle: 'Enviar mensaje al LLM',
+            description: 'Envía mensajes al servicio LLM con contexto completo del cliente, pedido y configuración',
+            defaults: {
+                name: 'Send Mensaje LLM',
+            },
+            inputs: ['main'],
+            outputs: ['main'],
+            credentials: [
+                {
+                    name: 'llmApiCredentials',
+                    required: true,
+                },
+            ],
+            properties: [
+                // ═══════════════════════════════════════════
+                // CONEXION
+                // ═══════════════════════════════════════════
+                {
+                    displayName: 'URL del Servicio',
+                    name: 'url',
+                    type: 'string',
+                    default: '',
+                    required: true,
+                    placeholder: 'https://tu-servicio.replit.app/api/message',
+                    description: 'URL completa del endpoint LLM. Puedes usar expresión: ={{ $("Get row(s)").item.json.url_vb }}',
+                },
+                // ═══════════════════════════════════════════
+                // CONVERSACION
+                // ═══════════════════════════════════════════
+                {
+                    displayName: '── Conversación ──',
+                    name: 'conversacionNotice',
+                    type: 'notice',
+                    default: '',
+                },
+                {
+                    displayName: 'Thread ID',
+                    name: 'threadId',
+                    type: 'string',
+                    default: '',
+                    description: 'ID del hilo de conversación en el LLM',
+                },
+                {
+                    displayName: 'Mensajes',
+                    name: 'message',
+                    type: 'json',
+                    default: '[]',
+                    description: 'Array de mensajes de la conversación (se envía como JSON stringify)',
+                },
+                {
+                    displayName: 'Subscriber ID',
+                    name: 'subscriberId',
+                    type: 'string',
+                    default: '',
+                    description: 'WhatsApp ID del contacto (wa_id)',
+                },
+                {
+                    displayName: 'Previous Response ID',
+                    name: 'previousResponseId',
+                    type: 'string',
+                    default: '',
+                    description: 'ID de la respuesta anterior del LLM para continuidad',
+                },
+                {
+                    displayName: 'Assistant / Prompt',
+                    name: 'assistant',
+                    type: 'string',
+                    default: '',
+                    description: 'Identificador del prompt o asistente a usar',
+                },
+                // ═══════════════════════════════════════════
+                // DATOS DEL CLIENTE
+                // ═══════════════════════════════════════════
+                {
+                    displayName: '── Datos del Cliente ──',
+                    name: 'clienteNotice',
+                    type: 'notice',
+                    default: '',
+                },
+                {
+                    displayName: 'Teléfono',
+                    name: 'telefono',
+                    type: 'string',
+                    default: '',
+                    placeholder: '+573001234567',
+                    description: 'Número de teléfono del cliente con prefijo +',
+                },
+                {
+                    displayName: 'Teléfono Prompt',
+                    name: 'telefonoPrompt',
+                    type: 'string',
+                    default: '',
+                    placeholder: '+573001234567',
+                    description: 'Teléfono para incluir en el prompt del LLM',
+                },
+                {
+                    displayName: 'Nombre',
+                    name: 'nombreNull',
+                    type: 'string',
+                    default: '',
+                    description: 'Nombre del cliente (puede ser null si no se conoce)',
+                },
+                {
+                    displayName: 'Dirección Cliente',
+                    name: 'direccionCliente',
+                    type: 'string',
+                    default: '',
+                    description: 'Dirección de entrega del cliente',
+                },
+                {
+                    displayName: 'Dirección (Nullable)',
+                    name: 'direccionNull',
+                    type: 'string',
+                    default: '',
+                    description: 'Dirección alternativa/nullable del cliente',
+                },
+                {
+                    displayName: 'Ciudad',
+                    name: 'ciudadCliente',
+                    type: 'string',
+                    default: '',
+                    description: 'Ciudad del cliente',
+                },
+                {
+                    displayName: 'Indicaciones Dirección',
+                    name: 'indicacionesDireccionNull',
+                    type: 'string',
+                    default: '',
+                    description: 'Indicaciones adicionales para la dirección de entrega',
+                },
+                // ═══════════════════════════════════════════
+                // DATOS DEL PEDIDO
+                // ═══════════════════════════════════════════
+                {
+                    displayName: '── Datos del Pedido ──',
+                    name: 'pedidoNotice',
+                    type: 'notice',
+                    default: '',
+                },
+                {
+                    displayName: 'Forma de Pago',
+                    name: 'formaDePagoNull',
+                    type: 'string',
+                    default: '',
+                    description: 'Forma de pago seleccionada por el cliente',
+                },
+                {
+                    displayName: 'Estado del Pago',
+                    name: 'estadoDelPagoNull',
+                    type: 'string',
+                    default: '',
+                    description: 'Estado actual del pago del cliente',
+                },
+                {
+                    displayName: 'Valor Domicilio',
+                    name: 'valorDomicilio',
+                    type: 'string',
+                    default: '',
+                    description: 'Valor del domicilio/envío',
+                },
+                {
+                    displayName: 'Hora de Entrega',
+                    name: 'horaDeEntregaNull',
+                    type: 'string',
+                    default: '',
+                    description: 'Hora programada de entrega',
+                },
+                {
+                    displayName: 'Productos Agotados',
+                    name: 'productosAgotados',
+                    type: 'string',
+                    default: '',
+                    description: 'Lista de productos agotados actualmente',
+                },
+                {
+                    displayName: 'Disponibilidad Bowls',
+                    name: 'disponibilidadBowls',
+                    type: 'string',
+                    default: '',
+                    description: 'Mensaje de disponibilidad de bowls',
+                },
+                // ═══════════════════════════════════════════
+                // CONFIGURACION LLM
+                // ═══════════════════════════════════════════
+                {
+                    displayName: '── Configuración LLM ──',
+                    name: 'llmNotice',
+                    type: 'notice',
+                    default: '',
+                },
+                {
+                    displayName: 'Model ID',
+                    name: 'modelId',
+                    type: 'string',
+                    default: '',
+                    description: 'Identificador del modelo LLM a usar',
+                },
+                {
+                    displayName: 'LLM ID',
+                    name: 'llmId',
+                    type: 'string',
+                    default: '',
+                    description: 'ID secundario del modelo LLM',
+                },
+                {
+                    displayName: 'Modelo Claude',
+                    name: 'modelClaude',
+                    type: 'string',
+                    default: '',
+                    placeholder: 'claude-sonnet-4-20250514',
+                    description: 'Modelo específico de Claude a usar',
+                },
+                {
+                    displayName: 'Effort',
+                    name: 'effort',
+                    type: 'options',
+                    options: [
+                        { name: 'Low', value: 'low' },
+                        { name: 'Medium', value: 'medium' },
+                        { name: 'High', value: 'high' },
+                    ],
+                    default: 'medium',
+                    description: 'Nivel de esfuerzo del modelo',
+                },
+                {
+                    displayName: 'Thinking',
+                    name: 'thinking',
+                    type: 'number',
+                    default: 1,
+                    description: 'Activar thinking del modelo (1 = activado, 0 = desactivado)',
+                },
+                {
+                    displayName: 'Buffer Seconds',
+                    name: 'bufferSeconds',
+                    type: 'number',
+                    default: 0,
+                    description: 'Segundos de buffer antes de procesar',
+                },
+                {
+                    displayName: 'Cache Control',
+                    name: 'useCacheControl',
+                    type: 'string',
+                    default: '',
+                    description: 'Configuración de control de caché del LLM',
+                },
+                // ═══════════════════════════════════════════
+                // IMAGEN
+                // ═══════════════════════════════════════════
+                {
+                    displayName: '── Imagen Adjunta ──',
+                    name: 'imagenNotice',
+                    type: 'notice',
+                    default: '',
+                },
+                {
+                    displayName: 'Incluir Imagen',
+                    name: 'includeImage',
+                    type: 'boolean',
+                    default: false,
+                    description: 'Whether to include a base64 image in the request',
+                },
+                {
+                    displayName: 'Campo Base64',
+                    name: 'imageBase64Field',
+                    type: 'string',
+                    default: 'base64',
+                    displayOptions: {
+                        show: {
+                            includeImage: [true],
+                        },
+                    },
+                    description: 'Nombre del campo que contiene la imagen en base64 del item anterior',
+                },
+                {
+                    displayName: 'Media Type',
+                    name: 'imageMediaType',
+                    type: 'options',
+                    options: [
+                        { name: 'JPEG', value: 'image/jpeg' },
+                        { name: 'PNG', value: 'image/png' },
+                        { name: 'WebP', value: 'image/webp' },
+                        { name: 'GIF', value: 'image/gif' },
+                    ],
+                    default: 'image/jpeg',
+                    displayOptions: {
+                        show: {
+                            includeImage: [true],
+                        },
+                    },
+                    description: 'Tipo de imagen',
+                },
+                // ═══════════════════════════════════════════
+                // OPCIONES AVANZADAS
+                // ═══════════════════════════════════════════
+                {
+                    displayName: 'Opciones',
+                    name: 'options',
+                    type: 'collection',
+                    placeholder: 'Agregar opción',
+                    default: {},
+                    options: [
+                        {
+                            displayName: 'Timeout (ms)',
+                            name: 'timeout',
+                            type: 'number',
+                            default: 30000,
+                            description: 'Timeout de la petición en milisegundos',
+                        },
+                        {
+                            displayName: 'Seguir Redirecciones',
+                            name: 'followRedirects',
+                            type: 'boolean',
+                            default: true,
+                            description: 'Whether to follow HTTP redirects',
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+    async execute() {
+        const items = this.getInputData();
+        const returnData = [];
+        const credentials = await this.getCredentials('llmApiCredentials');
+        for (let i = 0; i < items.length; i++) {
+            try {
+                // URL del servicio
+                const url = this.getNodeParameter('url', i);
+                // Conversación
+                const threadId = this.getNodeParameter('threadId', i);
+                const messageRaw = this.getNodeParameter('message', i);
+                const subscriberId = this.getNodeParameter('subscriberId', i);
+                const previousResponseId = this.getNodeParameter('previousResponseId', i);
+                const assistant = this.getNodeParameter('assistant', i);
+                // Cliente
+                const telefono = this.getNodeParameter('telefono', i);
+                const telefonoPrompt = this.getNodeParameter('telefonoPrompt', i);
+                const nombreNull = this.getNodeParameter('nombreNull', i);
+                const direccionCliente = this.getNodeParameter('direccionCliente', i);
+                const direccionNull = this.getNodeParameter('direccionNull', i);
+                const ciudadCliente = this.getNodeParameter('ciudadCliente', i);
+                const indicacionesDireccionNull = this.getNodeParameter('indicacionesDireccionNull', i);
+                // Pedido
+                const formaDePagoNull = this.getNodeParameter('formaDePagoNull', i);
+                const estadoDelPagoNull = this.getNodeParameter('estadoDelPagoNull', i);
+                const valorDomicilio = this.getNodeParameter('valorDomicilio', i);
+                const horaDeEntregaNull = this.getNodeParameter('horaDeEntregaNull', i);
+                const productosAgotados = this.getNodeParameter('productosAgotados', i);
+                const disponibilidadBowls = this.getNodeParameter('disponibilidadBowls', i);
+                // LLM Config
+                const modelId = this.getNodeParameter('modelId', i);
+                const llmId = this.getNodeParameter('llmId', i);
+                const modelClaude = this.getNodeParameter('modelClaude', i);
+                const effort = this.getNodeParameter('effort', i);
+                const thinking = this.getNodeParameter('thinking', i);
+                const bufferSeconds = this.getNodeParameter('bufferSeconds', i);
+                const useCacheControl = this.getNodeParameter('useCacheControl', i);
+                // Imagen
+                const includeImage = this.getNodeParameter('includeImage', i);
+                // Opciones
+                const options = this.getNodeParameter('options', i);
+                // Parsear mensajes
+                let messageParsed;
+                if (typeof messageRaw === 'string') {
+                    try {
+                        messageParsed = JSON.parse(messageRaw);
+                    }
+                    catch {
+                        messageParsed = messageRaw;
+                    }
+                }
+                else {
+                    messageParsed = messageRaw;
+                }
+                // Construir body
+                const body = {
+                    thread_id: threadId,
+                    message: typeof messageParsed === 'string' ? messageParsed : JSON.stringify(messageParsed),
+                    subscriber_id: subscriberId,
+                    use_cache_control: useCacheControl,
+                    direccionCliente,
+                    telefono,
+                    nombreNull,
+                    thinking,
+                    modelID: modelId,
+                    direccionNull,
+                    telefonoPrompt,
+                    valor_domicilio: valorDomicilio,
+                    assistant,
+                    ciudadCliente,
+                    forma_de_pago_null: formaDePagoNull,
+                    llmID: llmId,
+                    productos_agotados: productosAgotados,
+                    previous_response_id: previousResponseId,
+                    disponibilidad_bowls: disponibilidadBowls,
+                    indicaciones_direccionNull: indicacionesDireccionNull,
+                    horaDeEntregaNull,
+                    estado_del_pago_null: estadoDelPagoNull,
+                    buffer_seconds: bufferSeconds,
+                    api_key: credentials.apiKey,
+                    model_claude: modelClaude,
+                    effort,
+                };
+                // Agregar imagen si está habilitada
+                if (includeImage) {
+                    const imageField = this.getNodeParameter('imageBase64Field', i);
+                    const mediaType = this.getNodeParameter('imageMediaType', i);
+                    const base64Data = items[i].json[imageField];
+                    body.images = [
+                        {
+                            data: base64Data || '',
+                            media_type: mediaType,
+                        },
+                    ];
+                }
+                // Hacer la petición HTTP
+                const requestOptions = {
+                    method: 'POST',
+                    uri: url,
+                    body,
+                    json: true,
+                    timeout: options.timeout || 30000,
+                    followRedirect: options.followRedirects !== false,
+                };
+                const response = await this.helpers.request(requestOptions);
+                returnData.push({
+                    json: typeof response === 'string' ? { response } : response,
+                    pairedItem: { item: i },
+                });
+            }
+            catch (error) {
+                if (this.continueOnFail()) {
+                    returnData.push({
+                        json: {
+                            error: error.message,
+                        },
+                        pairedItem: { item: i },
+                    });
+                    continue;
+                }
+                throw error;
+            }
+        }
+        return [returnData];
+    }
+}
+exports.SendMensajeLlm = SendMensajeLlm;
+//# sourceMappingURL=SendMensajeLlm.node.js.map
