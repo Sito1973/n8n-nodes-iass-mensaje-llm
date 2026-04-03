@@ -295,7 +295,7 @@ export class SendMensajeLlm implements INodeType {
 						includeImage: [true],
 					},
 				},
-				description: 'Nombre del campo que contiene la imagen en base64 del item anterior',
+				description: 'Base64 de la imagen directo (ej: {{ $json.base64 }}) o nombre del campo',
 			},
 			{
 				displayName: 'Media Type',
@@ -491,13 +491,18 @@ export class SendMensajeLlm implements INodeType {
 
 				// Agregar imagen si está habilitada
 				if (includeImage) {
-					const imageField = this.getNodeParameter('imageBase64Field', i) as string;
+					const imageValue = this.getNodeParameter('imageBase64Field', i) as string;
 					const mediaType = this.getNodeParameter('imageMediaType', i) as string;
-					const base64Data = items[i].json[imageField] as string;
+
+					// Si el valor es largo (>100 chars) es el base64 directo
+					// Si es corto es un nombre de campo para buscar en el item
+					const base64Data = imageValue.length > 100
+						? imageValue
+						: (items[i].json[imageValue] as string) || '';
 
 					body.images = [
 						{
-							data: base64Data || '',
+							data: base64Data,
 							media_type: mediaType,
 						},
 					];
