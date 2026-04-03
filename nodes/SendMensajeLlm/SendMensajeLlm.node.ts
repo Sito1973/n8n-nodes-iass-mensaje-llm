@@ -20,12 +20,7 @@ export class SendMensajeLlm implements INodeType {
 		},
 		inputs: ['main'] as any,
 		outputs: ['main'] as any,
-		credentials: [
-			{
-				name: 'llmApiCredentials',
-				required: true,
-			},
-		],
+		credentials: [],
 		properties: [
 			// ═══════════════════════════════════════════
 			// CONEXION
@@ -259,6 +254,14 @@ export class SendMensajeLlm implements INodeType {
 				description: 'Segundos de buffer antes de procesar',
 			},
 			{
+				displayName: 'API Key',
+				name: 'apiKey',
+				type: 'string',
+				typeOptions: { password: true },
+				default: '',
+				description: 'API Key del servicio LLM. Si se deja vacío, el backend usa su key interna.',
+			},
+			{
 				displayName: 'Cache Control',
 				name: 'useCacheControl',
 				type: 'string',
@@ -316,6 +319,48 @@ export class SendMensajeLlm implements INodeType {
 			// ═══════════════════════════════════════════
 			// OPCIONES AVANZADAS
 			// ═══════════════════════════════════════════
+			// ═══════════════════════════════════════════
+			// CAMPOS ADICIONALES
+			// ═══════════════════════════════════════════
+			{
+				displayName: '── Campos Adicionales ──',
+				name: 'camposNotice',
+				type: 'notice',
+				default: '',
+			},
+			{
+				displayName: 'Campos Extra',
+				name: 'extraFields',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Agregar Campo',
+				default: {},
+				options: [
+					{
+						name: 'fields',
+						displayName: 'Campo',
+						values: [
+							{
+								displayName: 'Nombre',
+								name: 'name',
+								type: 'string',
+								default: '',
+								description: 'Nombre del campo en el JSON',
+							},
+							{
+								displayName: 'Valor',
+								name: 'value',
+								type: 'string',
+								default: '',
+								description: 'Valor del campo (acepta expresiones)',
+							},
+						],
+					},
+				],
+				description: 'Campos adicionales para agregar al body del request',
+			},
 			{
 				displayName: 'Opciones',
 				name: 'options',
@@ -345,8 +390,6 @@ export class SendMensajeLlm implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
-
-		const credentials = await this.getCredentials('llmApiCredentials');
 
 		for (let i = 0; i < items.length; i++) {
 			try {
@@ -385,6 +428,7 @@ export class SendMensajeLlm implements INodeType {
 				const thinking = this.getNodeParameter('thinking', i) as number;
 				const bufferSeconds = this.getNodeParameter('bufferSeconds', i) as number;
 				const useCacheControl = this.getNodeParameter('useCacheControl', i) as string;
+				const apiKey = this.getNodeParameter('apiKey', i) as string;
 
 				// Imagen
 				const includeImage = this.getNodeParameter('includeImage', i) as boolean;
@@ -430,10 +474,20 @@ export class SendMensajeLlm implements INodeType {
 					horaDeEntregaNull: toNull(horaDeEntregaNull),
 					estado_del_pago_null: toNull(estadoDelPagoNull),
 					buffer_seconds: bufferSeconds,
-					api_key: credentials.apiKey as string,
+					api_key: apiKey || '',
 					model_claude: modelClaude,
 					effort,
 				};
+
+				// Agregar campos extra al body
+				const extraFields = this.getNodeParameter('extraFields', i) as { fields?: Array<{ name: string; value: string }> };
+				if (extraFields.fields) {
+					for (const field of extraFields.fields) {
+						if (field.name) {
+							body[field.name] = field.value;
+						}
+					}
+				}
 
 				// Agregar imagen si está habilitada
 				if (includeImage) {

@@ -16,12 +16,7 @@ class SendMensajeLlm {
             },
             inputs: ['main'],
             outputs: ['main'],
-            credentials: [
-                {
-                    name: 'llmApiCredentials',
-                    required: true,
-                },
-            ],
+            credentials: [],
             properties: [
                 // ═══════════════════════════════════════════
                 // CONEXION
@@ -251,6 +246,14 @@ class SendMensajeLlm {
                     description: 'Segundos de buffer antes de procesar',
                 },
                 {
+                    displayName: 'API Key',
+                    name: 'apiKey',
+                    type: 'string',
+                    typeOptions: { password: true },
+                    default: '',
+                    description: 'API Key del servicio LLM. Si se deja vacío, el backend usa su key interna.',
+                },
+                {
                     displayName: 'Cache Control',
                     name: 'useCacheControl',
                     type: 'string',
@@ -306,6 +309,48 @@ class SendMensajeLlm {
                 // ═══════════════════════════════════════════
                 // OPCIONES AVANZADAS
                 // ═══════════════════════════════════════════
+                // ═══════════════════════════════════════════
+                // CAMPOS ADICIONALES
+                // ═══════════════════════════════════════════
+                {
+                    displayName: '── Campos Adicionales ──',
+                    name: 'camposNotice',
+                    type: 'notice',
+                    default: '',
+                },
+                {
+                    displayName: 'Campos Extra',
+                    name: 'extraFields',
+                    type: 'fixedCollection',
+                    typeOptions: {
+                        multipleValues: true,
+                    },
+                    placeholder: 'Agregar Campo',
+                    default: {},
+                    options: [
+                        {
+                            name: 'fields',
+                            displayName: 'Campo',
+                            values: [
+                                {
+                                    displayName: 'Nombre',
+                                    name: 'name',
+                                    type: 'string',
+                                    default: '',
+                                    description: 'Nombre del campo en el JSON',
+                                },
+                                {
+                                    displayName: 'Valor',
+                                    name: 'value',
+                                    type: 'string',
+                                    default: '',
+                                    description: 'Valor del campo (acepta expresiones)',
+                                },
+                            ],
+                        },
+                    ],
+                    description: 'Campos adicionales para agregar al body del request',
+                },
                 {
                     displayName: 'Opciones',
                     name: 'options',
@@ -335,7 +380,6 @@ class SendMensajeLlm {
     async execute() {
         const items = this.getInputData();
         const returnData = [];
-        const credentials = await this.getCredentials('llmApiCredentials');
         for (let i = 0; i < items.length; i++) {
             try {
                 // URL del servicio
@@ -369,6 +413,7 @@ class SendMensajeLlm {
                 const thinking = this.getNodeParameter('thinking', i);
                 const bufferSeconds = this.getNodeParameter('bufferSeconds', i);
                 const useCacheControl = this.getNodeParameter('useCacheControl', i);
+                const apiKey = this.getNodeParameter('apiKey', i);
                 // Imagen
                 const includeImage = this.getNodeParameter('includeImage', i);
                 // Opciones
@@ -406,10 +451,19 @@ class SendMensajeLlm {
                     horaDeEntregaNull: toNull(horaDeEntregaNull),
                     estado_del_pago_null: toNull(estadoDelPagoNull),
                     buffer_seconds: bufferSeconds,
-                    api_key: credentials.apiKey,
+                    api_key: apiKey || '',
                     model_claude: modelClaude,
                     effort,
                 };
+                // Agregar campos extra al body
+                const extraFields = this.getNodeParameter('extraFields', i);
+                if (extraFields.fields) {
+                    for (const field of extraFields.fields) {
+                        if (field.name) {
+                            body[field.name] = field.value;
+                        }
+                    }
+                }
                 // Agregar imagen si está habilitada
                 if (includeImage) {
                     const imageField = this.getNodeParameter('imageBase64Field', i);
