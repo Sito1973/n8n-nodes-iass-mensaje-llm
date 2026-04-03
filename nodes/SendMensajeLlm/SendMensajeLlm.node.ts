@@ -59,9 +59,12 @@ export class SendMensajeLlm implements INodeType {
 			{
 				displayName: 'Mensajes',
 				name: 'message',
-				type: 'json',
-				default: '[]',
-				description: 'Array de mensajes de la conversación (se envía como JSON stringify)',
+				type: 'string',
+				default: '',
+				typeOptions: {
+					rows: 4,
+				},
+				description: 'Mensajes de la conversación. Acepta texto directo con saltos de línea o expresiones.',
 			},
 			{
 				displayName: 'Subscriber ID',
@@ -392,22 +395,17 @@ export class SendMensajeLlm implements INodeType {
 					followRedirects?: boolean;
 				};
 
-				// Parsear mensajes
-				let messageParsed: any;
-				if (typeof messageRaw === 'string') {
-					try {
-						messageParsed = JSON.parse(messageRaw);
-					} catch {
-						messageParsed = messageRaw;
-					}
-				} else {
-					messageParsed = messageRaw;
+				// Procesar mensaje - pasar directo, preservando saltos de línea
+				let message: any = messageRaw;
+				if (typeof message === 'string') {
+					// Reemplazar saltos de línea literales escapados por saltos reales
+					message = message.replace(/\\n/g, '\n');
 				}
 
 				// Construir body
 				const body: Record<string, any> = {
 					thread_id: threadId,
-					message: typeof messageParsed === 'string' ? messageParsed : JSON.stringify(messageParsed),
+					message,
 					subscriber_id: subscriberId,
 					use_cache_control: useCacheControl,
 					direccionCliente,
