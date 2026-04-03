@@ -379,30 +379,32 @@ class SendMensajeLlm {
                     // Reemplazar saltos de línea literales escapados por saltos reales
                     message = message.replace(/\\n/g, '\n');
                 }
+                // Convertir strings "null" a null real
+                const toNull = (val) => (val === 'null' || val === '' || val === 'undefined') ? null : val;
                 // Construir body
                 const body = {
-                    thread_id: threadId,
+                    thread_id: toNull(threadId),
                     message,
                     subscriber_id: subscriberId,
                     use_cache_control: useCacheControl,
                     direccionCliente,
                     telefono,
-                    nombreNull,
+                    nombreNull: toNull(nombreNull),
                     thinking,
                     modelID: modelId,
-                    direccionNull,
+                    direccionNull: toNull(direccionNull),
                     telefonoPrompt,
                     valor_domicilio: valorDomicilio,
                     assistant,
                     ciudadCliente,
-                    forma_de_pago_null: formaDePagoNull,
+                    forma_de_pago_null: toNull(formaDePagoNull),
                     llmID: llmId,
                     productos_agotados: productosAgotados,
-                    previous_response_id: previousResponseId,
+                    previous_response_id: toNull(previousResponseId),
                     disponibilidad_bowls: disponibilidadBowls,
-                    indicaciones_direccionNull: indicacionesDireccionNull,
-                    horaDeEntregaNull,
-                    estado_del_pago_null: estadoDelPagoNull,
+                    indicaciones_direccionNull: toNull(indicacionesDireccionNull),
+                    horaDeEntregaNull: toNull(horaDeEntregaNull),
+                    estado_del_pago_null: toNull(estadoDelPagoNull),
                     buffer_seconds: bufferSeconds,
                     api_key: credentials.apiKey,
                     model_claude: modelClaude,
